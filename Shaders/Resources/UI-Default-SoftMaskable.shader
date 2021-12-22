@@ -70,15 +70,15 @@ Shader "Hidden/UI/Default (SoftMaskable)"
             struct v2f
             {
                 float4 vertex   : SV_POSITION;
-                fixed4 color    : COLOR;
+                float4 color    : COLOR;
                 float2 texcoord  : TEXCOORD0;
                 float4 worldPosition : TEXCOORD1;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
             sampler2D _MainTex;
-            fixed4 _Color;
-            fixed4 _TextureSampleAdd;
+            float4 _Color;
+            float4 _TextureSampleAdd;
             float4 _ClipRect;
             float4 _MainTex_ST;
 
@@ -97,9 +97,9 @@ Shader "Hidden/UI/Default (SoftMaskable)"
                 return OUT;
             }
 
-            fixed4 frag(v2f IN) : SV_Target
+            float4 frag(v2f IN) : SV_Target
             {
-                half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
+                float4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
 
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
 

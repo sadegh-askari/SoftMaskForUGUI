@@ -5,9 +5,9 @@ sampler2D _SoftMaskTex;
 float _Stencil;
 float4x4 _GameVP;
 float4x4 _GameTVP;
-half4 _MaskInteraction;
+float4 _MaskInteraction;
 
-fixed Approximately(float4x4 a, float4x4 b)
+float Approximately(float4x4 a, float4x4 b)
 {
 	float4x4 d = abs(a - b);
 	return step(
@@ -24,9 +24,9 @@ float SoftMaskInternal(float4 clipPos, float4 wpos)
 float SoftMaskInternal(float4 clipPos)
 #endif
 {
-	half2 view = clipPos.xy/_ScreenParams.xy;
+	float2 view = clipPos.xy/_ScreenParams.xy;
 	#if SOFTMASK_EDITOR
-		fixed isSceneView = 1 - Approximately(UNITY_MATRIX_VP, _GameVP);
+		float isSceneView = 1 - Approximately(UNITY_MATRIX_VP, _GameVP);
 		float4 cpos = mul(_GameTVP, mul(UNITY_MATRIX_M, wpos));
 		view = lerp(view, cpos.xy / cpos.w * 0.5 + 0.5, isSceneView);
 		#if UNITY_UV_STARTS_AT_TOP
@@ -36,8 +36,8 @@ float SoftMaskInternal(float4 clipPos)
 		view.y = lerp(view.y, 1 - view.y, step(0, _ProjectionParams.x));
 	#endif
 
-	fixed4 mask = tex2D(_SoftMaskTex, view);
-	half4 alpha = saturate(lerp(fixed4(1, 1, 1, 1), lerp(mask, 1 - mask, _MaskInteraction - 1), _MaskInteraction));
+	float4 mask = tex2D(_SoftMaskTex, view);
+	float4 alpha = saturate(lerp(float4(1, 1, 1, 1), lerp(mask, 1 - mask, _MaskInteraction - 1), _MaskInteraction));
 	#if SOFTMASK_EDITOR
 	alpha *= step(0, view.x) * step(view.x, 1) * step(0, view.y) * step(view.y, 1);
 	#endif
