@@ -12,7 +12,7 @@ Shader "UI/Default (SoftMaskable)"
         _StencilReadMask ("Stencil Read Mask", Float) = 255
 
         _ColorMask ("Color Mask", Float) = 15
-        _GrayscaleAmount ("Grayscale Amount", Range (0, 1)) = 1.0
+        _GrayscaleAmount ("Grayscale Amount", Range (0, 1)) = 0
 
         [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
     }
