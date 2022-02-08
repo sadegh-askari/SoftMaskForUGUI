@@ -18,9 +18,12 @@ namespace Coffee.UISoftMask
 	[ExecuteInEditMode]
 # endif
     [RequireComponent(typeof(Graphic))]
-    public class SoftMaskable : MonoBehaviour, IMaterialModifier, ICanvasRaycastFilter
+    public class SoftMaskable : MonoBehaviour,
+        IMaterialModifier,
+        ICanvasRaycastFilter
 #if UNITY_EDITOR
-        , ISerializationCallbackReceiver
+        ,
+        ISerializationCallbackReceiver
 # endif
     {
         private const int kVisibleInside = (1 << 0) + (1 << 2) + (1 << 4) + (1 << 6);
@@ -50,6 +53,9 @@ namespace Coffee.UISoftMask
         private Graphic _graphic;
         private SoftMask _softMask;
         private Hash128 _effectMaterialHash;
+
+        [SerializeField] [Range(0, 1)]
+        private float _grayscaleAmount;
 
         /// <summary>
         /// The graphic will be visible only in areas where no mask is present.
@@ -138,6 +144,7 @@ namespace Coffee.UISoftMask
                 mat.shader = Shader.Find(string.Format("{0} (SoftMaskable)", mat.shader.name));
                 mat.SetTexture(s_SoftMaskTexId, softMask.softMaskBuffer);
                 mat.SetInt(s_StencilCompId, m_UseStencil ? (int) CompareFunction.Equal : (int) CompareFunction.Always);
+                mat.SetFloat("_GrayscaleAmount", _grayscaleAmount);
 
 #if UNITY_EDITOR
                 mat.EnableKeyword("SOFTMASK_EDITOR");
@@ -178,7 +185,7 @@ namespace Coffee.UISoftMask
                 var sm = _softMask;
                 for (var i = 0; i < 4; i++)
                 {
-                    s_Interactions[i] = sm ? ((m_MaskInteraction >> i * 2) & 0x3) : 0;
+                    s_Interactions[i] = sm ? ((m_MaskInteraction >> i*2) & 0x3) : 0;
                     sm = sm ? sm.parent : null;
                 }
 
@@ -191,7 +198,7 @@ namespace Coffee.UISoftMask
                 {
                     if (!sm) break;
 
-                    s_Interactions[i] = sm ? ((m_MaskInteraction >> i * 2) & 0x3) : 0;
+                    s_Interactions[i] = sm ? ((m_MaskInteraction >> i*2) & 0x3) : 0;
                     var interaction = s_Interactions[i] == 1;
                     var rt = sm.transform as RectTransform;
                     var inRect = RectTransformUtility.RectangleContainsScreenPoint(rt, sp, eventCamera);
@@ -244,6 +251,7 @@ namespace Coffee.UISoftMask
                 s_SoftMaskTexId = Shader.PropertyToID("_SoftMaskTex");
                 s_StencilCompId = Shader.PropertyToID("_StencilComp");
                 s_MaskInteractionId = Shader.PropertyToID("_MaskInteraction");
+                
 
 #if UNITY_EDITOR
                 s_GameVPId = Shader.PropertyToID("_GameVP");
@@ -274,7 +282,7 @@ namespace Coffee.UISoftMask
 #if UNITY_EDITOR
         private void UpdateMaterialForSceneView(Material mat)
         {
-            if(!mat || !graphic || !graphic.canvas || !mat.shader || !mat.shader.name.EndsWith(" (SoftMaskable)")) return;
+            if (!mat || !graphic || !graphic.canvas || !mat.shader || !mat.shader.name.EndsWith(" (SoftMaskable)")) return;
 
             // Set view and projection matrices.
             Profiler.BeginSample("Set view and projection matrices");
@@ -283,7 +291,7 @@ namespace Coffee.UISoftMask
             if (c && c.renderMode != RenderMode.ScreenSpaceOverlay && cam)
             {
                 var p = GL.GetGPUProjectionMatrix(cam.projectionMatrix, false);
-                var pv = p * cam.worldToCameraMatrix;
+                var pv = p*cam.worldToCameraMatrix;
                 mat.SetMatrix(s_GameVPId, pv);
                 mat.SetMatrix(s_GameTVPId, pv);
             }
@@ -292,12 +300,14 @@ namespace Coffee.UISoftMask
                 var pos = c.transform.position;
                 var scale = c.transform.localScale.x;
                 var size = (c.transform as RectTransform).sizeDelta;
-                var gameVp = Matrix4x4.TRS(new Vector3(0, 0, 0.5f), Quaternion.identity, new Vector3(2 / size.x, 2 / size.y, 0.0005f * scale));
-                var gameTvp = Matrix4x4.TRS(new Vector3(0, 0, 0), Quaternion.identity, new Vector3(1 / pos.x, 1 / pos.y, -2 / 2000f)) * Matrix4x4.Translate(-pos);
+                var gameVp = Matrix4x4.TRS(new Vector3(0, 0, 0.5f), Quaternion.identity, new Vector3(2/size.x, 2/size.y, 0.0005f*scale));
+                var gameTvp = Matrix4x4.TRS(new Vector3(0, 0, 0), Quaternion.identity, new Vector3(1/pos.x, 1/pos.y, -2/2000f))*Matrix4x4.Translate(-pos);
 
                 mat.SetMatrix(s_GameVPId, gameVp);
                 mat.SetMatrix(s_GameTVPId, gameTvp);
             }
+            
+            mat.SetFloat("_GrayscaleAmount", _grayscaleAmount);
             Profiler.EndSample();
         }
 
