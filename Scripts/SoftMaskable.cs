@@ -135,7 +135,7 @@ namespace Coffee.UISoftMask
             // Generate soft maskable material.
             modifiedMaterial = MaterialCache.Register(baseMaterial, _effectMaterialHash, mat =>
             {
-                mat.shader = Shader.Find(string.Format("Hidden/{0} (SoftMaskable)", mat.shader.name));
+                mat.shader = Shader.Find(string.Format("{0} (SoftMaskable)", mat.shader.name));
                 mat.SetTexture(s_SoftMaskTexId, softMask.softMaskBuffer);
                 mat.SetInt(s_StencilCompId, m_UseStencil ? (int) CompareFunction.Equal : (int) CompareFunction.Always);
 
@@ -337,7 +337,7 @@ namespace Coffee.UISoftMask
                 if (graphic.name.Contains("TMP SubMeshUI")) return;
                 if (!graphic.material) return;
                 if (!graphic.material.shader) return;
-                if (graphic.material.shader.name != "Hidden/UI/Default (SoftMaskable)") return;
+                if (graphic.material.shader.name != "UI/Default (SoftMaskable)") return;
 
                 graphic.material = null;
                 graphic.SetMaterialDirtyEx();
